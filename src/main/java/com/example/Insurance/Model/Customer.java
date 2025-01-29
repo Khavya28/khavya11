@@ -7,43 +7,54 @@ import lombok.Setter;
 import java.util.List;
 
 @Entity
-@Table(name="customer")
+@Table(name = "customer")
 @Setter
 @Getter
 public class Customer extends Audit {
 
-        @Id
-        @GeneratedValue(strategy = GenerationType.IDENTITY)
-        @Column(name = "Customer_id")
-        private int cid;
-        @Column(name = "Name")
-        private String name;
-        @Column(name = "Dob")
-        private String dob;
-        @Column(name = "Phone",unique = true,nullable = false)
-        private String phone;
-        @Column(name = "Email",unique = true)
-        private String email;
-        @Column(name = "Address")
-        private String address;
-        @Column(name = "Identity_proof")
-        private String idenproof;
+    @Id
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    @Column(name = "Customer_id")
+    private int cid;
 
-        @OneToMany(mappedBy = "customer")
-        private List<Insurance_Policy> insurance_policy;
-        @OneToOne(mappedBy = "customer",cascade = CascadeType.ALL)
-        private Login login;
+    @Column(name = "Name")
+    private String name;
 
-    public Customer(int cid, String name, String dob, String phone, String email, String address, String idenproof, List<Insurance_Policy> insurance_policy, Login login) {
+    @Column(name = "Dob")
+    private String dob;
+
+    @Column(name = "Phone", unique = true, nullable = false)
+    private String phone;
+
+    @Column(name = "Email", unique = true)
+    private String email;
+
+    @Column(name = "Password")
+    private String password;  // Password field added here
+
+    @Column(name = "Address")
+    private String address;
+
+    @Column(name = "Identity_proof")
+    private String idenproof;
+
+    @OneToMany(mappedBy = "customer")
+    private List<Insurance_Policy> insurance_policy;
+
+    public Customer(int cid, String name, String dob, String phone, String email, String password, String address, String idenproof, List<Insurance_Policy> insurance_policy) {
         this.cid = cid;
         this.name = name;
         this.dob = dob;
         this.phone = phone;
         this.email = email;
+        this.password = password;
         this.address = address;
         this.idenproof = idenproof;
         this.insurance_policy = insurance_policy;
-        this.login = login;
+    }
+
+    public Customer() {
+        // Default constructor for JPA
     }
 
     public int getCid() {
@@ -86,6 +97,14 @@ public class Customer extends Audit {
         this.email = email;
     }
 
+    public String getPassword() {
+        return password;
+    }
+
+    public void setPassword(String password) {
+        this.password = password;
+    }
+
     public String getAddress() {
         return address;
     }
@@ -108,13 +127,5 @@ public class Customer extends Audit {
 
     public void setInsurance_policy(List<Insurance_Policy> insurance_policy) {
         this.insurance_policy = insurance_policy;
-    }
-
-    public Login getLogin() {
-        return login;
-    }
-
-    public void setLogin(Login login) {
-        this.login = login;
     }
 }

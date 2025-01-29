@@ -8,66 +8,84 @@ import org.springframework.stereotype.Service;
 
 import java.util.List;
 import java.util.Optional;
-
 @Service
 public class CustomerService {
+
     @Autowired
     private CustomerRepo customerrepo;
 
-    public Optional<Customer> getcustomerbyid(int cid) {
-        return customerrepo.findById(cid);
-    }
-    public List<Customer> getallcustomerdetails()
-    {
-        return customerrepo.findAll();
-    }
-
     public String savecustomer(Customer customer) {
+        // Set a default password if not provided
+        if (customer.getPassword() == null || customer.getPassword().isEmpty()) {
+            customer.setPassword("admin@123");  // Default password
+        }
 
-            try{
-                customerrepo.save(customer);
-                return "Customer added successfully!...";
-            } catch (DataIntegrityViolationException e)
-            {
-                if(e.getMessage().contains("email"))
-                {
-                    return "Error: Email already exists!";
-                } else if (e.getMessage().contains("phone")) {
-                    return "Error:Phone number already exists!";
-                }
-                return "Error:Could not add customer.";
+        try {
+            // Log the customer data before saving it
+            System.out.println("Attempting to save customer: " + customer);
+            customerrepo.save(customer);
+            return "Customer saved successfully!";
+        } catch (DataIntegrityViolationException e) {
+            // Log the exception to see the cause
+            System.err.println("Error occurred: " + e.getMessage());
+            e.printStackTrace();
+
+            if (e.getMessage().contains("email")) {
+                return "Error: Email already exists!";
+            } else if (e.getMessage().contains("phone")) {
+                return "Error: Phone number already exists!";
             }
+            return "Error: Could not add customer.";
+        } catch (Exception e) {
+            // Catch any other unexpected errors
+            System.err.println("Unexpected error occurred: " + e.getMessage());
+            e.printStackTrace();
+            return "Unexpected error occurred.";
+        }
+    }
 
-        }
+    // Update an existing customer
     public String updateCustomer(int id, Customer customer) {
-        Customer result = customerrepo.findById(id).orElse(null);
-        if (result==null)
-        {
-            return "No Customer Found";
+        Optional<Customer> existingCustomerOpt = customerrepo.findById(id);
+        if (existingCustomerOpt.isEmpty()) {
+            return "Customer not found.";
         }
-        else if(!result.getPhone().equals(customer.getPhone())&&customerrepo.findByPhone(customer.getPhone()) != null )
-        {
+
+        Customer existingCustomer = existingCustomerOpt.get();
+
+        // Check if the phone number or email is already in use
+        if (!customer.getPhone().equals(existingCustomer.getPhone()) && customerrepo.findByPhone(customer.getPhone()) != null) {
             return "Error: Phone number already exists!";
         }
-        else if(!customer.getEmail().equals(result.getEmail())&&customerrepo.findbyEmail(customer.getEmail())!=null)
-        {
+
+        if (!customer.getEmail().equals(existingCustomer.getEmail()) && customerrepo.findByEmail(customer.getEmail()) != null) {
             return "Error: Email already exists!";
         }
-        else {
-            customerrepo.save(customer);
-            return "updated ssucessfully!..";
-        }
+
+        // Save the updated customer
+        customerrepo.save(customer);
+        return "Customer updated successfully!";
     }
 
-
-
-    public String deletecustomer(int cid)
-    {
+    // Delete a customer
+    public String deletecustomer(int cid) {
         if (!customerrepo.existsById(cid)) {
             return "Customer with ID " + cid + " does not exist.";
         }
         customerrepo.deleteById(cid);
-        return "Customer deleted";
+        return "Customer deleted successfully!";
+    }
+
+    // Get customer by ID
+    public Optional<Customer> getcustomerbyid(int cid) {
+        return customerrepo.findById(cid);
+    }
+
+    // Get all customers
+    public List<Customer> getallcustomerdetails() {
+        return customerrepo.findAll();
+    }
+    public Optional<Customer> login(String email, String password) {
+        return customerrepo.findByEmailAndPassword(email, password);
     }
 }
-

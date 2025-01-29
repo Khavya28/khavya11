@@ -2,11 +2,11 @@ package com.example.Insurance.Model;
 
 import jakarta.persistence.Entity;
 import jakarta.persistence.ManyToOne;
-import jakarta.persistence.JoinColumn;
+import jakarta.persistence.*;
 
 @Entity
 public class Claim extends Audit {
-
+    @Id
     @ManyToOne
     @JoinColumn(name = "insurance_policy_id")
     private Insurance_Policy insurancePolicy;

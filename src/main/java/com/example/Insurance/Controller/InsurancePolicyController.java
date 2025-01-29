@@ -8,21 +8,16 @@ import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RestController;
 
 import java.util.List;
+import java.util.Optional;
 
 @RestController
 public class InsurancePolicyController {
     @Autowired
     private InsurancePolicyService insurancepolicyservice;
-    @GetMapping("/insurance/{policyId}")
-    public Insurance_Policy getpolicy(@PathVariable ("policyId") int policyId)
-    {
-        return insurancepolicyservice.getpolicy(policyId);
-    }
-    @GetMapping("/allinsurance")
-    public List<Insurance_Policy> Getallinsurance()
-    {
-
-        return insurancepolicyservice.getallpolicy();
+    @GetMapping("/policy/{id}")
+    public Optional<Object[]> getPolicyDetailsById(@PathVariable("id") int id) {
+        InsurancePolicyController insurancePolicyService;
+        return insurancepolicyservice.getPolicyDetailsById(id);
     }
 
 }
