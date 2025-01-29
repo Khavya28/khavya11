@@ -10,14 +10,5 @@ import java.util.Optional;
 
 @Service
 public class InsuranceCategoryService {
-    @Autowired
-    private InsuranceCategoryRepo insurancecategoryrepo;
 
-    public Optional<InsuranceCategory> getCategoryById(int id) {
-        return insurancecategoryrepo.findById(id);
-    }
-
-    public List<InsuranceCategory> getAllCategories() {
-        return insurancecategoryrepo.findAll();
-    }
 }
