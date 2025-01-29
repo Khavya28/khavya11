@@ -17,17 +17,7 @@ public class Insurance_Policy extends Audit {
     @JoinColumn(name = "customer_id")
     private Customer customer;
 
-    public Nominee getNominee() {
-        return nominee;
-    }
 
-    public void setNominee(Nominee nominee) {
-        this.nominee = nominee;
-    }
-
-    @ManyToOne
-    @JoinColumn(name = "nominee_id")
-    private Nominee nominee;
 
     private String policyName;
     private String policyholdername;
@@ -72,11 +62,10 @@ public class Insurance_Policy extends Audit {
         this.policyholdername = policyholdername;
     }
 
-    public Insurance_Policy(int id, InsurancePlanType insurancePlanType, Customer customer, Nominee nominee, String policyName, String policyholdername) {
+    public Insurance_Policy(int id, InsurancePlanType insurancePlanType, Customer customer, String policyName, String policyholdername) {
         this.id = id;
         this.insurancePlanType = insurancePlanType;
         this.customer = customer;
-        this.nominee = nominee;
         this.policyName = policyName;
         this.policyholdername = policyholdername;
     }
