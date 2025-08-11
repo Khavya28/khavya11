@@ -1,35 +1,45 @@
 package com.example.Insurance.Service;
 
 import com.example.Insurance.Model.Customer;
+import com.example.Insurance.Model.InsurancePolicy;
 import com.example.Insurance.Repository.CustomerRepo;
+import com.example.Insurance.Repository.InsurancePolicyRepo;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
 import java.util.Optional;
+
 @Service
 public class CustomerService {
 
     @Autowired
-    private CustomerRepo customerrepo;
+    private CustomerRepo customerRepo;
 
-    public String savecustomer(Customer customer) {
-        // Set a default password if not provided
-        if (customer.getPassword() == null || customer.getPassword().isEmpty()) {
-            customer.setPassword("admin@123");  // Default password
-        }
+    @Autowired
+    private InsurancePolicyRepo policyRepo;
 
+    public Optional<Customer> getCustomerById(int id) {
+        return customerRepo.findById(id);
+    }
+
+    public List<InsurancePolicy> getPoliciesByCustomerId(int customerId) {
+        List<InsurancePolicy> policies = policyRepo.findByCustomerId(customerId);
+        policies.forEach(policy -> {
+            policy.getInsuranceCategory().getCategoryName(); // Access a property to initialize
+        });
+        return policies;
+    }
+
+    public String saveCustomer(Customer customer) {
         try {
-            // Log the customer data before saving it
-            System.out.println("Attempting to save customer: " + customer);
-            customerrepo.save(customer);
+            if (customer.getPassword() == null || customer.getPassword().isEmpty()) {
+                customer.setPassword("admin@123");
+            }
+            customerRepo.save(customer);
             return "Customer saved successfully!";
         } catch (DataIntegrityViolationException e) {
-            // Log the exception to see the cause
-            System.err.println("Error occurred: " + e.getMessage());
-            e.printStackTrace();
-
             if (e.getMessage().contains("email")) {
                 return "Error: Email already exists!";
             } else if (e.getMessage().contains("phone")) {
@@ -37,55 +47,74 @@ public class CustomerService {
             }
             return "Error: Could not add customer.";
         } catch (Exception e) {
-            // Catch any other unexpected errors
-            System.err.println("Unexpected error occurred: " + e.getMessage());
-            e.printStackTrace();
             return "Unexpected error occurred.";
         }
     }
 
-    // Update an existing customer
-    public String updateCustomer(int id, Customer customer) {
-        Optional<Customer> existingCustomerOpt = customerrepo.findById(id);
+    public String updateCustomer(int id, Customer updatedCustomer) {
+        Optional<Customer> existingCustomerOpt = customerRepo.findById(id);
         if (existingCustomerOpt.isEmpty()) {
             return "Customer not found.";
         }
-
         Customer existingCustomer = existingCustomerOpt.get();
 
-        // Check if the phone number or email is already in use
-        if (!customer.getPhone().equals(existingCustomer.getPhone()) && customerrepo.findByPhone(customer.getPhone()) != null) {
+        if (!updatedCustomer.getPhone().equals(existingCustomer.getPhone()) &&
+                customerRepo.findByPhone(updatedCustomer.getPhone()) != null) {
             return "Error: Phone number already exists!";
         }
 
-        if (!customer.getEmail().equals(existingCustomer.getEmail()) && customerrepo.findByEmail(customer.getEmail()) != null) {
+        if (!updatedCustomer.getEmail().equals(existingCustomer.getEmail()) &&
+                customerRepo.findByEmailIgnoreCase(updatedCustomer.getEmail()) != null) {
             return "Error: Email already exists!";
         }
 
-        // Save the updated customer
-        customerrepo.save(customer);
-        return "Customer updated successfully!";
+        existingCustomer.setName(updatedCustomer.getName());
+        existingCustomer.setDob(updatedCustomer.getDob());
+        existingCustomer.setPhone(updatedCustomer.getPhone());
+        existingCustomer.setEmail(updatedCustomer.getEmail());
+        existingCustomer.setAddress(updatedCustomer.getAddress());
+
+        customerRepo.save(existingCustomer);
+        return "Customer details updated successfully!";
     }
 
-    // Delete a customer
-    public String deletecustomer(int cid) {
-        if (!customerrepo.existsById(cid)) {
+    public String deleteCustomer(int cid) {
+        if (!customerRepo.existsById(cid)) {
             return "Customer with ID " + cid + " does not exist.";
         }
-        customerrepo.deleteById(cid);
+        customerRepo.deleteById(cid);
         return "Customer deleted successfully!";
     }
 
-    // Get customer by ID
-    public Optional<Customer> getcustomerbyid(int cid) {
-        return customerrepo.findById(cid);
+    public Optional<Customer> login(String email, String password) {
+        return customerRepo.findByEmailAndPassword(email, password);
     }
 
-    // Get all customers
-    public List<Customer> getallcustomerdetails() {
-        return customerrepo.findAll();
+
+    public List<Customer> getAllCustomers() {
+        return customerRepo.findAll();
     }
-    public Optional<Customer> login(String email, String password) {
-        return customerrepo.findByEmailAndPassword(email, password);
+
+    public Customer getCustomerByEmail(String email) {
+        Optional<Customer> customerOpt = customerRepo.findByEmailIgnoreCase(email);
+        return customerOpt.orElse(null); // Handle Optional properly
+    }
+    public boolean verifyPassword(int customerId, String password) {
+        Optional<Customer> customerOpt = customerRepo.findById(customerId);
+        if (customerOpt.isPresent()) {
+            Customer customer = customerOpt.get();
+            return customer.getPassword().equals(password); // Compare passwords
+        }
+        return false; // Customer not found
+    }
+    public String updatePassword(int customerId, String newPassword) {
+        Optional<Customer> customerOpt = customerRepo.findById(customerId);
+        if (customerOpt.isPresent()) {
+            Customer customer = customerOpt.get();
+            customer.setPassword(newPassword); // Update password
+            customerRepo.save(customer); // Save updated customer
+            return "Password updated successfully!";
+        }
+        return "Customer not found.";
     }
 }
